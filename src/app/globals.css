@@ -127,3 +127,264 @@
     @apply font-sans;
   }
 }
+/* ---------------------------------- */
+/* Editor Styles Added Below          */
+/* ---------------------------------- */
+@layer components {
+  .tiptap > :first-child {
+    margin-top: 0;
+  }
+
+  /* Base List Container Styles */
+  .tiptap ul,
+  .tiptap ol {
+    padding-left: 1.75rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Unordered List (Bullets) */
+  .tiptap ul {
+    list-style-type: disc;
+  }
+
+  /* Ordered List (Numbers) */
+  .tiptap ol {
+    list-style-type: decimal;
+  }
+
+  /* Handle Nested Lists gracefully */
+  .tiptap ul ul, 
+  .tiptap ol ol, 
+  .tiptap ul ol, 
+  .tiptap ol ul {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  /* Change bullet style for nested unordered lists */
+  .tiptap ul ul {
+    list-style-type: circle;
+  }
+
+  /* Change number style for nested ordered lists */
+  .tiptap ol ol {
+    list-style-type: lower-alpha;
+  }
+
+  /* List Item Spacing */
+  .tiptap li {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0.375rem;
+    line-height: 1.7;
+  }
+
+  /* Paragraphs inside lists */
+  .tiptap li > p {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  /* Beautiful Custom Markers */
+  .tiptap li::marker {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* ---------------------------------- */
+  /* Task List Styles                   */
+  /* ---------------------------------- */
+  
+  /* Task List Container */
+  .tiptap ul[data-type="taskList"] {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  /* Task List Item */
+  .tiptap ul[data-type="taskList"] li {
+    list-style-type: none;
+    display: flex;
+    align-items: flex-start;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0; 
+  }
+
+  /* Explicitly hide the custom colored marker for task lists */
+  .tiptap ul[data-type="taskList"] li::marker {
+    content: none;
+    display: none;
+  }
+
+  /* The Label containing the checkbox */
+  .tiptap ul[data-type="taskList"] li > label {
+    flex: 0 0 auto;
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+    user-select: none;
+  }
+
+  /* The Content Div */
+  .tiptap ul[data-type="taskList"] li > div {
+    flex: 1 1 auto;
+  }
+
+  /* Nested Task Lists */
+  .tiptap ul[data-type="taskList"] ul[data-type="taskList"] {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 1.75rem;
+  }
+
+  /* Beautiful Custom Checkbox (shadcn) */
+  .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+    appearance: none;
+    background-color: transparent;
+    margin: 0;
+    cursor: pointer;
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    display: grid;
+    place-content: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .tiptap ul[data-type="taskList"] input[type="checkbox"]::before {
+    content: "";
+    width: 0.65rem;
+    height: 0.65rem;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    background-color: var(--primary-foreground);
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  .tiptap ul[data-type="taskList"] input[type="checkbox"]:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .tiptap ul[data-type="taskList"] input[type="checkbox"]:checked::before {
+    transform: scale(1);
+  }
+
+  .tiptap ul[data-type="taskList"] li:has(input[type="checkbox"]:checked) > div {
+    text-decoration: line-through;
+    color: var(--muted-foreground);
+    transition: color 0.2s ease;
+  } 
+  
+}
+
+/* ---------------------------------- */
+/* Bulletproof Tiptap Heading Styles  */
+/* ---------------------------------- */
+/* Keep these OUTSIDE the @layer to ensure they override Tailwind's base reset */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  line-height: 1.2 !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 0.5em !important;
+  font-weight: 700 !important;
+  color: var(--foreground) !important;
+  display: block !important;
+}
+
+.ProseMirror h1 {
+  font-size: 2.25rem !important;
+}
+
+.ProseMirror h2 {
+  font-size: 1.875rem !important;
+}
+
+.ProseMirror h3 {
+  font-size: 1.5rem !important;
+}
+
+.ProseMirror h4 {
+  font-size: 1.25rem !important;
+}
+
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-size: 1.125rem !important;
+}
+
+/* ---------------------------------- */
+/* Table Styles (Tiptap)              */
+/* ---------------------------------- */
+.ProseMirror .tableWrapper {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 1px solid var(--border); /* Matches shadcn border */
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 8px 12px; /* Slightly roomier padding for a modern look */
+  position: relative;
+  vertical-align: top;
+}
+
+/* Prevents awkward spacing for paragraphs inside table cells */
+.ProseMirror table td > *,
+.ProseMirror table th > * {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.ProseMirror table th {
+  background-color: var(--muted); /* Matches shadcn subtle background */
+  font-weight: 600;
+  text-align: left;
+}
+
+/* The overlay when a user clicks and drags to select multiple cells */
+.ProseMirror table .selectedCell::after {
+  background: rgba(128, 128, 128, 0.2); /* Neutral semi-transparent overlay */
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+/* The drag handle for resizing columns */
+.ProseMirror table .column-resize-handle {
+  background-color: var(--primary); /* Uses your main brand color */
+  bottom: -2px;
+  pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+}
+
+.ProseMirror.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}

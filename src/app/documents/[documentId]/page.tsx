@@ -1,3 +1,5 @@
+import { Editor } from "./editor";
+
 interface Props{
   params: Promise<{documentId: string}>
 }
@@ -5,7 +7,11 @@ interface Props{
 const DocumentId = async ({params}: Props) => {
   const {documentId} = await params;
   return (
-    <div>DocumentId Page : {documentId}</div>
+    <>
+    <div className="min-h-screen bg-[#FAFBFD]">
+    <Editor/>
+      </div>
+    </>
   )
 }
 
