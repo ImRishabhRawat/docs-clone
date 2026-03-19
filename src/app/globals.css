@@ -388,3 +388,20 @@
   cursor: ew-resize;
   cursor: col-resize;
 }
+
+/* ---------------------------------- */
+/* Image Styles (Tiptap)              */
+/* ---------------------------------- */
+.ProseMirror img {
+  display: block;
+  height: auto;
+  margin: 1.5rem 0;
+  max-width: 100%;
+  border-radius: var(--radius-md); /* Ties into your shadcn theme perfectly */
+}
+
+/* The outline when a user clicks on the image to select it */
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid var(--primary); /* Uses your main brand color instead of purple */
+  outline-offset: 2px; /* Adds a clean, premium gap between the image and the outline */
+}

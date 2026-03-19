@@ -3,7 +3,8 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TaskItem } from "@tiptap/extension-list";
 import { TaskList } from "@tiptap/extension-list";
-import { TableKit } from '@tiptap/extension-table'
+import { TableKit } from "@tiptap/extension-table";
+import Image from "@tiptap/extension-image";
 
 export const Editor = () => {
   const editor = useEditor({
@@ -21,21 +22,30 @@ export const Editor = () => {
       }),
       TaskList,
       TableKit,
+      Image.configure({
+        resize: {
+          enabled: true,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
     ],
-    content: <table>
+    content: `<table>
           <tbody>
             <tr>
               <th>Name</th>
-              <th colSpan={3}>Description</th>
+              <th colSpan="3">Description</th>
             </tr>
             <tr>
               <td>Cyndi Lauper</td>
-              <td>Singer</td>
-              <td>Songwriter</td>
+              <td>Singer</td> 
+               <td>Songwriter</td>
               <td>Actress</td>
             </tr>
+            <tr>
+             
+            </tr>
           </tbody>
-        </table>,
+        </table>`,
     // Don't render immediately on the server to avoid SSR issues
     immediatelyRender: false,
   });
