@@ -154,9 +154,9 @@
   }
 
   /* Handle Nested Lists gracefully */
-  .tiptap ul ul, 
-  .tiptap ol ol, 
-  .tiptap ul ol, 
+  .tiptap ul ul,
+  .tiptap ol ol,
+  .tiptap ul ol,
   .tiptap ol ul {
     margin-top: 0.5rem;
     margin-bottom: 0;
@@ -195,7 +195,7 @@
   /* ---------------------------------- */
   /* Task List Styles                   */
   /* ---------------------------------- */
-  
+
   /* Task List Container */
   .tiptap ul[data-type="taskList"] {
     list-style: none;
@@ -210,7 +210,7 @@
     align-items: flex-start;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
-    padding-left: 0; 
+    padding-left: 0;
   }
 
   /* Explicitly hide the custom colored marker for task lists */
@@ -251,7 +251,9 @@
     border-radius: 4px;
     display: grid;
     place-content: center;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .tiptap ul[data-type="taskList"] input[type="checkbox"]::before {
@@ -274,12 +276,14 @@
     transform: scale(1);
   }
 
-  .tiptap ul[data-type="taskList"] li:has(input[type="checkbox"]:checked) > div {
+  .tiptap
+    ul[data-type="taskList"]
+    li:has(input[type="checkbox"]:checked)
+    > div {
     text-decoration: line-through;
     color: var(--muted-foreground);
     transition: color 0.2s ease;
-  } 
-  
+  }
 }
 
 /* ---------------------------------- */
@@ -390,18 +394,83 @@
 }
 
 /* ---------------------------------- */
-/* Image Styles (Tiptap)              */
+/* Image Resize Handles (Tiptap v3)   */
 /* ---------------------------------- */
-.ProseMirror img {
-  display: block;
-  height: auto;
-  margin: 1.5rem 0;
-  max-width: 100%;
-  border-radius: var(--radius-md); /* Ties into your shadcn theme perfectly */
+
+/* 1. Wrap the image so handles stick to it */
+.ProseMirror span[data-type="image"],
+.ProseMirror div[data-type="image"],
+.ProseMirror .node-image {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
 }
 
-/* The outline when a user clicks on the image to select it */
-.ProseMirror img.ProseMirror-selectednode {
-  outline: 3px solid var(--primary); /* Uses your main brand color instead of purple */
-  outline-offset: 2px; /* Adds a clean, premium gap between the image and the outline */
+/* 2. Style the actual draggable handles */
+.ProseMirror [data-resize-handle] {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: var(--primary); /* Uses your shadcn brand color */
+  border: 2px solid white;
+  border-radius: 50%;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease;
+}
+
+.ProseMirror [data-resize-handle]:hover {
+  transform: scale(1.2);
+}
+
+/* 3. Hide handles when the image is NOT clicked/selected */
+.ProseMirror *:not(.ProseMirror-selectednode) > [data-resize-handle] {
+  display: none;
+}
+
+/* 4. Position the Handle Corners */
+.ProseMirror [data-resize-handle="top"] {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+.ProseMirror [data-resize-handle="bottom"] {
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+.ProseMirror [data-resize-handle="left"] {
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+.ProseMirror [data-resize-handle="right"] {
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.ProseMirror [data-resize-handle="top-left"] {
+  top: -8px;
+  left: -8px;
+  cursor: nwse-resize;
+}
+.ProseMirror [data-resize-handle="top-right"] {
+  top: -8px;
+  right: -8px;
+  cursor: nesw-resize;
+}
+.ProseMirror [data-resize-handle="bottom-left"] {
+  bottom: -8px;
+  left: -8px;
+  cursor: nesw-resize;
+}
+.ProseMirror [data-resize-handle="bottom-right"] {
+  bottom: -8px;
+  right: -8px;
+  cursor: nwse-resize;
 }

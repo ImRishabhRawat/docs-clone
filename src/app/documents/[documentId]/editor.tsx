@@ -23,8 +23,10 @@ export const Editor = () => {
       TaskList,
       TableKit,
       Image.configure({
+        allowBase64: true,
         resize: {
           enabled: true,
+          directions: ["top", "bottom", "left", "right"],
           alwaysPreserveAspectRatio: true,
         },
       }),
