@@ -5,9 +5,14 @@ import { TaskItem } from "@tiptap/extension-list";
 import { TaskList } from "@tiptap/extension-list";
 import { TableKit } from "@tiptap/extension-table";
 import Image from "@tiptap/extension-image";
+import { useEditorStore } from "@/store/use-editor-store";
 
 export const Editor = () => {
+  const {setEditor} = useEditorStore();
   const editor = useEditor({
+    onCreate({editor}){
+      setEditor(editor);
+    },
     editorProps: {
       attributes: {
         style: "padding-left: 56px; padding-right-56px;",
