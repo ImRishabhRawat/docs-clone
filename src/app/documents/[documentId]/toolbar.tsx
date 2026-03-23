@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { type ColorResult, SketchPicker } from "react-color";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/use-editor-store";
@@ -17,7 +18,12 @@ import {
   Underline,
   Undo2Icon,
 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Level } from "@tiptap/extension-heading";
 
 interface ToolbarButtonProps {
@@ -26,11 +32,52 @@ interface ToolbarButtonProps {
   icon: LucideIcon;
 }
 
+const TextColorButton = () => {
+  const { editor } = useEditorStore();
+  const [activeColor, setActiveColor] = useState("#000000");
+
+  const value = editor?.getAttributes("textStyle").color;
+
+  const onChange = (color: ColorResult) => {
+    editor?.chain().focus().setColor(color.hex).run();
+    setActiveColor(color.hex);
+  };
+
+  useEffect(() => {
+    if (value) {
+      setActiveColor(value);
+    }
+  }, [value]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
+            )}
+          />
+        }
+      >
+        <span className="text-xs">A</span>
+        <div
+          className="h-0.5 w-full"
+          style={{ backgroundColor: activeColor }}
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
+        <SketchPicker color={activeColor} onChange={onChange} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const HeadingLevelButton = () => {
   const { editor } = useEditorStore();
 
   const headings = [
-    { label: "Normal text", value: 0, fontSize: "16px" }, 
+    { label: "Normal text", value: 0, fontSize: "16px" },
     { label: "Heading 1", value: 1, fontSize: "32px" },
     { label: "Heading 2", value: 2, fontSize: "24px" },
     { label: "Heading 3", value: 3, fontSize: "20px" },
@@ -78,14 +125,12 @@ const HeadingLevelButton = () => {
         render={
           <button
             className={cn(
-              "h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm"
+              "h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm",
             )}
           />
         }
       >
-        <span className="truncate">
-          {getCurrentHeadingLabel()}
-        </span>
+        <span className="truncate">{getCurrentHeadingLabel()}</span>
         <ChevronDown className="ml-4 size-4 shrink-0" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
@@ -96,17 +141,23 @@ const HeadingLevelButton = () => {
               if (value === 0) {
                 editor?.chain().focus().setParagraph().run();
               } else {
-                editor?.chain().focus().toggleHeading({ level: value as Level }).run();
+                editor
+                  ?.chain()
+                  .focus()
+                  .toggleHeading({ level: value as Level })
+                  .run();
               }
             }}
             className={cn(
               "flex items-center gap-x-2 px-2 py-1 rounded-sm hover:bg-neutral-200/80 cursor-pointer",
               // Use our explicit tracked state here for the gray background
-              currentHeading === value && "bg-neutral-200/80" 
+              currentHeading === value && "bg-neutral-200/80",
             )}
           >
             {/* 3. Removed text-sm and moved the fontSize style directly to the span! */}
-            <span style={{ fontSize, fontWeight: value > 0 ? 600 : 400 }}>{label}</span>
+            <span style={{ fontSize, fontWeight: value > 0 ? 600 : 400 }}>
+              {label}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -116,7 +167,7 @@ const HeadingLevelButton = () => {
 
 const FontFamilyButton = () => {
   const { editor } = useEditorStore();
-  
+
   // 1. Explicitly track font family
   const [currentFont, setCurrentFont] = useState("Arial");
 
@@ -153,14 +204,12 @@ const FontFamilyButton = () => {
         render={
           <button
             className={cn(
-              "h-7 w-[120px] shrink-0 flex items-center justify-between rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm"
+              "h-7 w-[120px] shrink-0 flex items-center justify-between rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm",
             )}
           />
         }
       >
-        <span className="truncate">
-          {currentFont}
-        </span>
+        <span className="truncate">{currentFont}</span>
         <ChevronDown className="ml-4 size-4 shrink-0" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
@@ -171,7 +220,7 @@ const FontFamilyButton = () => {
             className={cn(
               "flex items-center gap-x-2 px-2 py-1 rounded-sm cursor-pointer",
               // Use our synced state variable here
-              currentFont === value && "bg-neutral-200/80"
+              currentFont === value && "bg-neutral-200/80",
             )}
             style={{ fontFamily: value }}
           >
@@ -183,7 +232,6 @@ const FontFamilyButton = () => {
   );
 };
 
-
 const ToolbarButton = ({
   onClick,
   isActive,
@@ -194,7 +242,7 @@ const ToolbarButton = ({
       onClick={onClick}
       className={cn(
         "text-sm h-7 min-w-7 flex items-center justify-center rounded-sm hover:bg-neutral-200/80",
-        isActive && "bg-neutral-200/80"
+        isActive && "bg-neutral-200/80",
       )}
     >
       <Icon className="size-4" />
@@ -272,7 +320,7 @@ export const Toolbar = () => {
           const current = dom.getAttribute("spellcheck");
           dom.setAttribute(
             "spellcheck",
-            current === "false" ? "true" : "false"
+            current === "false" ? "true" : "false",
           );
         },
       },
@@ -282,7 +330,7 @@ export const Toolbar = () => {
         label: "Bold",
         icon: Bold,
         onClick: () => editor?.chain().focus().toggleBold().run(),
-        isActive: activeFormats.bold, 
+        isActive: activeFormats.bold,
       },
       {
         label: "Italic",
@@ -295,7 +343,7 @@ export const Toolbar = () => {
         icon: Underline,
         onClick: () => editor?.chain().focus().toggleUnderline().run(),
         isActive: activeFormats.underline,
-      }
+      },
     ],
     [
       {
@@ -303,7 +351,7 @@ export const Toolbar = () => {
         icon: MessageSquarePlusIcon,
         isActive: false, // TODO: Implement comment functionality
       },
-       {
+      {
         label: "List Todo",
         icon: ListTodoIcon,
         onClick: () => editor?.chain().focus().toggleTaskList().run(),
@@ -315,7 +363,7 @@ export const Toolbar = () => {
         onClick: () => editor?.chain().focus().unsetAllMarks().run(),
         // Removed `isActive` here, as removing formats isn't a toggled state
       },
-    ]
+    ],
   ];
 
   return (
@@ -348,6 +396,7 @@ export const Toolbar = () => {
         <ToolbarButton key={item.label} {...item} />
       ))}
       {/* text color  */}
+      <TextColorButton />
       {/* highlight color */}
       <Separator
         orientation="vertical"
@@ -358,7 +407,7 @@ export const Toolbar = () => {
       {/* align */}
       {/* line height */}
       {/* list  */}
-       {sections[2].map((item) => (
+      {sections[2].map((item) => (
         <ToolbarButton key={item.label} {...item} />
       ))}
     </div>

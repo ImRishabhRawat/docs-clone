@@ -6,7 +6,8 @@ import { TaskList } from "@tiptap/extension-list";
 import { TableKit } from "@tiptap/extension-table";
 import Image from "@tiptap/extension-image";
 import { useEditorStore } from "@/store/use-editor-store";
-import { TextStyle, FontFamily } from '@tiptap/extension-text-style'
+import { TextStyle, FontFamily } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 
 export const Editor = () => {
   const {setEditor} = useEditorStore();
@@ -59,6 +60,10 @@ export const Editor = () => {
       }),
       TextStyle,
       FontFamily,
+      Color,
+      // Highlight.configure({
+      //   multicolor: true,
+      // })
     ],
     content: `<table>
           <tbody>
