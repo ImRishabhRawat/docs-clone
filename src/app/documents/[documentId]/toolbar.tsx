@@ -18,6 +18,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Level } from "@tiptap/extension-heading";
 
 interface ToolbarButtonProps {
   onClick?: () => void;
@@ -29,7 +30,7 @@ const HeadingLevelButton = () => {
   const { editor } = useEditorStore();
 
   const headings = [
-    { label: "Normal text", value: 0, fontSize: "16px" }, // Note: Normal text is usually 16px, not 12px!
+    { label: "Normal text", value: 0, fontSize: "16px" }, 
     { label: "Heading 1", value: 1, fontSize: "32px" },
     { label: "Heading 2", value: 2, fontSize: "24px" },
     { label: "Heading 3", value: 3, fontSize: "20px" },
@@ -38,16 +39,39 @@ const HeadingLevelButton = () => {
     { label: "Heading 6", value: 6, fontSize: "14px" },
   ];
 
-  const getCurrentHeading = () => {
-    for (let level = 1; level <= 6; level++) {
-      if (editor?.isActive("heading", { level })) {
-        return `Heading ${level}`;
+  // 1. Track the current active heading state explicitly
+  const [currentHeading, setCurrentHeading] = useState(0);
+
+  // 2. Listen for Tiptap updates to change the dropdown label
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateHeadingState = () => {
+      for (let level = 1; level <= 6; level++) {
+        if (editor.isActive("heading", { level })) {
+          setCurrentHeading(level);
+          return;
+        }
       }
-    }
-    return "Normal text";
+      setCurrentHeading(0); // If no heading is active, default to Normal text
+    };
+
+    updateHeadingState(); // Run immediately
+
+    editor.on("transaction", updateHeadingState);
+    editor.on("selectionUpdate", updateHeadingState);
+
+    return () => {
+      editor.off("transaction", updateHeadingState);
+      editor.off("selectionUpdate", updateHeadingState);
+    };
+  }, [editor]);
+
+  const getCurrentHeadingLabel = () => {
+    if (currentHeading === 0) return "Normal text";
+    return `Heading ${currentHeading}`;
   };
 
-  // 1. ADDED THE REQUIRED `return` KEYWORD HERE
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -60,7 +84,7 @@ const HeadingLevelButton = () => {
         }
       >
         <span className="truncate">
-          {getCurrentHeading()}
+          {getCurrentHeadingLabel()}
         </span>
         <ChevronDown className="ml-4 size-4 shrink-0" />
       </DropdownMenuTrigger>
@@ -68,37 +92,60 @@ const HeadingLevelButton = () => {
         {headings.map(({ label, value, fontSize }) => (
           <DropdownMenuItem
             key={value}
-            // 2. ADDED onClick SO IT ACTUALLY APPLIES THE HEADING
             onClick={() => {
               if (value === 0) {
                 editor?.chain().focus().setParagraph().run();
               } else {
-                editor?.chain().focus().toggleHeading({ level: value as any }).run();
+                editor?.chain().focus().toggleHeading({ level: value as Level }).run();
               }
             }}
             className={cn(
               "flex items-center gap-x-2 px-2 py-1 rounded-sm hover:bg-neutral-200/80 cursor-pointer",
-              ((value === 0 && !editor?.isActive("heading")) || 
-              editor?.isActive("heading", { level: value })) && "bg-neutral-200/80"
+              // Use our explicit tracked state here for the gray background
+              currentHeading === value && "bg-neutral-200/80" 
             )}
-            style={{ fontSize }}
           >
-            <span className="text-sm">{label}</span>
+            {/* 3. Removed text-sm and moved the fontSize style directly to the span! */}
+            <span style={{ fontSize, fontWeight: value > 0 ? 600 : 400 }}>{label}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  ); // 3. Don't forget to close the return block!
+  );
 };
 
 const FontFamilyButton = () => {
-  const {editor} = useEditorStore();
+  const { editor } = useEditorStore();
+  
+  // 1. Explicitly track font family
+  const [currentFont, setCurrentFont] = useState("Arial");
 
   const fonts = [
-    {label: "Arial", value: "Arial"},
-    {label: "Verdana", value: "Verdana"},
-    {label: "Times New Roman", value: "Times New Roman"},
+    { label: "Arial", value: "Arial" },
+    { label: "Verdana", value: "Verdana" },
+    { label: "Times New Roman", value: "Times New Roman" },
   ];
+
+  // 2. Keep the dropdown label in sync with cursor position
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateFontState = () => {
+      // Safely get the current font or default to Arial
+      const font = editor.getAttributes("textStyle").fontFamily || "Arial";
+      setCurrentFont(font);
+    };
+
+    updateFontState();
+
+    editor.on("transaction", updateFontState);
+    editor.on("selectionUpdate", updateFontState);
+
+    return () => {
+      editor.off("transaction", updateFontState);
+      editor.off("selectionUpdate", updateFontState);
+    };
+  }, [editor]);
 
   return (
     <DropdownMenu>
@@ -112,7 +159,7 @@ const FontFamilyButton = () => {
         }
       >
         <span className="truncate">
-          {editor?.getAttributes("textStyle").fontFamily || "Arial"}
+          {currentFont}
         </span>
         <ChevronDown className="ml-4 size-4 shrink-0" />
       </DropdownMenuTrigger>
@@ -122,8 +169,9 @@ const FontFamilyButton = () => {
             key={value}
             onClick={() => editor?.chain().focus().setFontFamily(value).run()}
             className={cn(
-              "flex items-center gap-x-2 px-2 py-1 rounded-sm",
-              editor?.getAttributes("textStyle").fontFamily === value && "bg-neutral-200/80"
+              "flex items-center gap-x-2 px-2 py-1 rounded-sm cursor-pointer",
+              // Use our synced state variable here
+              currentFont === value && "bg-neutral-200/80"
             )}
             style={{ fontFamily: value }}
           >
@@ -132,8 +180,9 @@ const FontFamilyButton = () => {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
+  );
+};
+
 
 const ToolbarButton = ({
   onClick,
