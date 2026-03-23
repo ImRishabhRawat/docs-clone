@@ -7,6 +7,7 @@ import { useEditorStore } from "@/store/use-editor-store";
 import {
   Bold,
   ChevronDown,
+  Highlighter,
   Italic,
   ListTodoIcon,
   LucideIcon,
@@ -32,22 +33,39 @@ interface ToolbarButtonProps {
   icon: LucideIcon;
 }
 
-const TextColorButton = () => {
+const HighlightColorButton = () => {
   const { editor } = useEditorStore();
-  const [activeColor, setActiveColor] = useState("#000000");
-
-  const value = editor?.getAttributes("textStyle").color;
+  
+  // Defaulting to white (#FFFFFF) for the background highlight fallback
+  const [activeColor, setActiveColor] = useState("#FFFFFF");
 
   const onChange = (color: ColorResult) => {
-    editor?.chain().focus().setColor(color.hex).run();
+    editor?.chain().focus().setHighlight({ color: color.hex }).run();
     setActiveColor(color.hex);
   };
 
+  // Listen to Tiptap events to update the color picker when the cursor moves
   useEffect(() => {
-    if (value) {
-      setActiveColor(value);
-    }
-  }, [value]);
+    if (!editor) return;
+
+    const updateColor = () => {
+      // Safely read the highlight color, and default back to white if no highlight is applied
+      const currentColor = editor.getAttributes("highlight").color || "#FFFFFF";
+      setActiveColor(currentColor);
+    };
+
+    // Run once on mount
+    updateColor();
+
+    // Listen for cursor movement and typing
+    editor.on("transaction", updateColor);
+    editor.on("selectionUpdate", updateColor);
+
+    return () => {
+      editor.off("transaction", updateColor);
+      editor.off("selectionUpdate", updateColor);
+    };
+  }, [editor]);
 
   return (
     <DropdownMenu>
@@ -55,24 +73,87 @@ const TextColorButton = () => {
         render={
           <button
             className={cn(
-              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden"
             )}
           />
         }
       >
-        <span className="text-xs">A</span>
+        <Highlighter className="size-4" />
         <div
-          className="h-0.5 w-full"
+          className="h-1 w-full mt-0.5"
           style={{ backgroundColor: activeColor }}
         />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
-        <SketchPicker color={activeColor} onChange={onChange} />
+      {/* Added border-0 and removed the padding so the picker takes full control */}
+      <DropdownMenuContent className="p-0 border-0">
+        <SketchPicker 
+          color={activeColor} 
+          onChange={onChange} 
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
+const TextColorButton = () => {
+  const { editor } = useEditorStore();
+  const [activeColor, setActiveColor] = useState("#000000");
+
+  const onChange = (color: ColorResult) => {
+    editor?.chain().focus().setColor(color.hex).run();
+    setActiveColor(color.hex);
+  };
+
+  // Listen to Tiptap events to update the color picker when the cursor moves
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateColor = () => {
+      // Safely read the color, and default back to black if no color is applied
+      const currentColor = editor.getAttributes("textStyle").color || "#000000";
+      setActiveColor(currentColor);
+    };
+
+    // Run once on mount
+    updateColor();
+
+    // Listen for cursor movement and typing
+    editor.on("transaction", updateColor);
+    editor.on("selectionUpdate", updateColor);
+
+    return () => {
+      editor.off("transaction", updateColor);
+      editor.off("selectionUpdate", updateColor);
+    };
+  }, [editor]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden"
+            )}
+          />
+        }
+      >
+        <span className="text-sm font-serif font-bold">A</span>
+        <div
+          className="h-1 w-full mt-0.5"
+          style={{ backgroundColor: activeColor }}
+        />
+      </DropdownMenuTrigger>
+      {/* Added border-0 and removed the padding so the picker takes full control */}
+      <DropdownMenuContent className="p-0 border-0">
+        <SketchPicker 
+          color={activeColor} 
+          onChange={onChange} 
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 const HeadingLevelButton = () => {
   const { editor } = useEditorStore();
 
@@ -125,7 +206,7 @@ const HeadingLevelButton = () => {
         render={
           <button
             className={cn(
-              "h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm",
+              "h-7 min-w-[120px] shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm",
             )}
           />
         }
@@ -133,7 +214,7 @@ const HeadingLevelButton = () => {
         <span className="truncate">{getCurrentHeadingLabel()}</span>
         <ChevronDown className="ml-4 size-4 shrink-0" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
+      <DropdownMenuContent className="w-full p-1 flex flex-col gap-y-1">
         {headings.map(({ label, value, fontSize }) => (
           <DropdownMenuItem
             key={value}
@@ -212,7 +293,7 @@ const FontFamilyButton = () => {
         <span className="truncate">{currentFont}</span>
         <ChevronDown className="ml-4 size-4 shrink-0" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
+      <DropdownMenuContent className="w-full p-1 flex flex-col gap-y-1">
         {fonts.map(({ label, value }) => (
           <DropdownMenuItem
             key={value}
@@ -397,6 +478,7 @@ export const Toolbar = () => {
       ))}
       {/* text color  */}
       <TextColorButton />
+      <HighlightColorButton />
       {/* highlight color */}
       <Separator
         orientation="vertical"
