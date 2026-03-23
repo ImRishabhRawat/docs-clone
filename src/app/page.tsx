@@ -73,13 +73,15 @@ const Home = () => {
             <Settings className="size-5 text-zinc-600 dark:text-zinc-400" />
           </Button>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full p-0 h-10 w-10 overflow-hidden border border-zinc-200 dark:border-zinc-700">
-                <Avatar className="h-full w-full">
-                  <AvatarImage src="https://github.com/shadcn.png" alt="User Profile" />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">RR</AvatarFallback>
-                </Avatar>
-              </Button>
+            <DropdownMenuTrigger
+               render={
+                <Button variant="ghost" size="icon" className="rounded-full p-0 h-10 w-10 overflow-hidden border border-zinc-200 dark:border-zinc-700" />
+              }
+            >
+              <Avatar className="h-full w-full">
+                <AvatarImage src="https://github.com/shadcn.png" alt="User Profile" />
+                <AvatarFallback className="bg-blue-100 text-blue-600">RR</AvatarFallback>
+              </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>Profile</DropdownMenuItem>
@@ -186,11 +188,12 @@ const Home = () => {
               </div>
               <h3 className="text-lg font-bold text-zinc-700 dark:text-zinc-300 mb-2">No documents yet</h3>
               <p className="text-zinc-500 dark:text-zinc-500 max-w-[280px]">Create your first document using the templates above or start with a blank one.</p>
-              <Button className="mt-6 rounded-full px-8 py-6 h-auto text-base font-semibold shadow-xl shadow-blue-500/20 hover:shadow-2xl transition-all" asChild>
-                 <Link href={`/documents/${Math.random().toString(36).substr(2, 9)}`}>
-                    <Plus className="size-5 mr-2" />
-                    New Document
-                 </Link>
+              <Button 
+                className="mt-6 rounded-full px-8 py-6 h-auto text-base font-semibold shadow-xl shadow-blue-500/20 hover:shadow-2xl transition-all" 
+                render={<Link href={`/documents/${Math.random().toString(36).substr(2, 9)}`} />}
+              >
+                  <Plus className="size-5 mr-2" />
+                  New Document
               </Button>
             </div>
           )}
