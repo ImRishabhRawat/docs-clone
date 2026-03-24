@@ -85,7 +85,7 @@ const HighlightColorButton = () => {
         />
       </DropdownMenuTrigger>
       {/* Added border-0 and removed the padding so the picker takes full control */}
-      <DropdownMenuContent className="p-0 border-0">
+      <DropdownMenuContent className="w-full p-0 border-0">
         <SketchPicker 
           color={activeColor} 
           onChange={onChange} 
@@ -145,7 +145,7 @@ const TextColorButton = () => {
         />
       </DropdownMenuTrigger>
       {/* Added border-0 and removed the padding so the picker takes full control */}
-      <DropdownMenuContent className="p-0 border-0">
+      <DropdownMenuContent className="w-full p-0 border-0">
         <SketchPicker 
           color={activeColor} 
           onChange={onChange} 
