@@ -8,7 +8,9 @@ import {
   Bold,
   ChevronDown,
   Highlighter,
+  ImageIcon,
   Italic,
+  Link2Icon,
   ListTodoIcon,
   LucideIcon,
   MessageSquarePlusIcon,
@@ -18,6 +20,7 @@ import {
   SpellCheckIcon,
   Underline,
   Undo2Icon,
+  UploadIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,6 +29,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Level } from "@tiptap/extension-heading";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface ToolbarButtonProps {
   onClick?: () => void;
@@ -33,9 +38,180 @@ interface ToolbarButtonProps {
   icon: LucideIcon;
 }
 
+const ImageButton = () => {
+  const { editor } = useEditorStore();
+  const [imageUrl, setImageUrl] = useState("");
+
+  // Helper to insert the image and clear the input
+  const onChange = (src: string) => {
+    editor?.chain().focus().setImage({ src }).run();
+    setImageUrl("");
+  };
+
+  // Handles native file explorer upload
+  const onUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Convert image to Base64 so it can be stored directly in the editor content
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            onChange(reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    input.click();
+  };
+
+  const handleImageUrlSubmit = () => {
+    if (imageUrl) {
+      onChange(imageUrl);
+    }
+  };
+
+  return (
+    <DropdownMenu
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          setImageUrl(""); // Clear the input when the menu closes
+        }
+      }}
+    >
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
+              // Highlights the button if an image is currently selected
+              editor?.isActive("image") && "bg-neutral-200/80" 
+            )}
+          />
+        }
+      >
+        <ImageIcon className="size-4" />
+      </DropdownMenuTrigger>
+      
+      {/* Increased width to fit the URL input nicely */}
+      <DropdownMenuContent className="w-[300px] p-2 flex flex-col gap-y-2 border-0">
+        
+        {/* Option 1: File Upload */}
+        <DropdownMenuItem onClick={onUpload} className="cursor-pointer">
+          <UploadIcon className="size-4 mr-2" />
+          Upload from computer
+        </DropdownMenuItem>
+        
+        <Separator />
+        
+        {/* Option 2: Image URL */}
+        <div className="flex items-center gap-x-2">
+          <Input
+            placeholder="Paste image URL"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleImageUrlSubmit();
+              }
+            }}
+          />
+          <Button onClick={handleImageUrlSubmit} size="sm">
+            Apply
+          </Button>
+        </div>
+        
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+
+const LinkButton = () => {
+  const { editor } = useEditorStore();
+  const [value, setValue] = useState("");
+  
+  // 1. Track the active state for the link button
+  const [isLinkActive, setIsLinkActive] = useState(false);
+
+  // 2. Listen to Tiptap events to highlight the button when on a link
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateState = () => {
+      setIsLinkActive(editor.isActive("link"));
+    };
+
+    updateState(); // Run on mount
+    editor.on("transaction", updateState);
+    editor.on("selectionUpdate", updateState);
+
+    return () => {
+      editor.off("transaction", updateState);
+      editor.off("selectionUpdate", updateState);
+    };
+  }, [editor]);
+
+  const onChange = (href: string) => {
+    // If the input is cleared, remove the link
+    if (!href) {
+      editor?.chain().focus().extendMarkRange("link").unsetLink().run();
+    } else {
+      editor?.chain().focus().extendMarkRange("link").setLink({ href }).run();
+    }
+    setValue("");
+  };
+
+  return (
+    <DropdownMenu
+      // This is a much safer way to populate the input when the dropdown opens!
+      onOpenChange={(isOpen) => {
+        if (isOpen) {
+          setValue(editor?.getAttributes("link").href || "");
+        }
+      }}
+    >
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
+              // 3. Apply the active background class here!
+              isLinkActive && "bg-neutral-200/80"
+            )}
+          />
+        }
+      >
+        <Link2Icon className="size-4" />
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent className="w-full p-2.5 flex items-center gap-x-2 border-0">
+        <Input
+          placeholder="Paste link"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            // Un-commented and fixed your Enter key logic!
+            if (e.key === "Enter") {
+              onChange(value);
+            }
+          }}
+        />
+        <Button onClick={() => onChange(value)}>Apply</Button>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const HighlightColorButton = () => {
   const { editor } = useEditorStore();
-  
+
   // Defaulting to white (#FFFFFF) for the background highlight fallback
   const [activeColor, setActiveColor] = useState("#FFFFFF");
 
@@ -73,7 +249,7 @@ const HighlightColorButton = () => {
         render={
           <button
             className={cn(
-              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden"
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
             )}
           />
         }
@@ -86,10 +262,7 @@ const HighlightColorButton = () => {
       </DropdownMenuTrigger>
       {/* Added border-0 and removed the padding so the picker takes full control */}
       <DropdownMenuContent className="w-full p-0 border-0">
-        <SketchPicker 
-          color={activeColor} 
-          onChange={onChange} 
-        />
+        <SketchPicker color={activeColor} onChange={onChange} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -133,7 +306,7 @@ const TextColorButton = () => {
         render={
           <button
             className={cn(
-              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden"
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
             )}
           />
         }
@@ -146,10 +319,7 @@ const TextColorButton = () => {
       </DropdownMenuTrigger>
       {/* Added border-0 and removed the padding so the picker takes full control */}
       <DropdownMenuContent className="w-full p-0 border-0">
-        <SketchPicker 
-          color={activeColor} 
-          onChange={onChange} 
-        />
+        <SketchPicker color={activeColor} onChange={onChange} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -485,7 +655,9 @@ export const Toolbar = () => {
         className="h-6 bg-neutral-300 my-auto"
       />
       {/* link  */}
+      <LinkButton/>
       {/* image  */}
+      <ImageButton/>
       {/* align */}
       {/* line height */}
       {/* list  */}
