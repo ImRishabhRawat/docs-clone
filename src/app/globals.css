@@ -474,3 +474,18 @@
   right: -8px;
   cursor: nwse-resize;
 }
+
+
+/* ---------------------------------- */
+/* Link Styles for Tiptap Editor      */
+/* ---------------------------------- */
+.ProseMirror a {
+  color: #2563eb !important; /* Forces the blue color */
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 4px !important;
+}
+
+.ProseMirror a:hover {
+  color: #1d4ed8 !important; /* Forces the darker blue on hover */
+}

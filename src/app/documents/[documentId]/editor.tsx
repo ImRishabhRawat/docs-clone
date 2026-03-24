@@ -9,6 +9,7 @@ import { useEditorStore } from "@/store/use-editor-store";
 import { TextStyle, FontFamily } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
+import Link from '@tiptap/extension-link'
 
 export const Editor = () => {
   const {setEditor} = useEditorStore();
@@ -64,6 +65,14 @@ export const Editor = () => {
       Color,
       Highlight.configure({
         multicolor: true,
+      }),
+     Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: 'https',
+        HTMLAttributes: {
+          class: 'text-blue-600 underline underline-offset-4 hover:text-blue-800',
+        },
       }),
     ],
     content: `<table>
