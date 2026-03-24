@@ -4,7 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { TaskItem } from "@tiptap/extension-list";
 import { TaskList } from "@tiptap/extension-list";
 import { TableKit } from "@tiptap/extension-table";
-import Image from "@tiptap/extension-image";
+import ImageResize from "tiptap-extension-resize-image";
 import { useEditorStore } from "@/store/use-editor-store";
 import { TextStyle, FontFamily } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
@@ -52,13 +52,10 @@ export const Editor = () => {
       }),
       TaskList,
       TableKit,
-      Image.configure({
-        allowBase64: true,
-        resize: {
-          enabled: true,
-          directions: ["top", "bottom", "left", "right"],
-          alwaysPreserveAspectRatio: true,
-        },
+     // 2. Use ImageResize instead of Image
+      ImageResize.configure({
+        // You don't need the custom resize block anymore, 
+        // this package handles the corners automatically!
       }),
       TextStyle,
       FontFamily,
