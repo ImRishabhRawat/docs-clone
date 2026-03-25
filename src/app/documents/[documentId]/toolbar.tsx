@@ -21,6 +21,8 @@ import {
   ListTodoIcon,
   LucideIcon,
   MessageSquarePlusIcon,
+  MinusIcon,
+  PlusIcon,
   PrinterIcon,
   Redo2Icon,
   RemoveFormattingIcon,
@@ -44,6 +46,119 @@ interface ToolbarButtonProps {
   isActive?: boolean;
   icon: LucideIcon;
 }
+
+const FontSizeButton = () => {
+  const { editor } = useEditorStore();
+
+  // 1. Explicitly track the value in the input box
+  const [inputValue, setInputValue] = useState("16");
+  const [isEditing, setIsEditing] = useState(false);
+
+  // 2. Listen to Tiptap events to sync the displayed size with the cursor position
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateFontSize = () => {
+      // Safely get the font size, strip the "px", and default to 16
+      const currentSize = editor.getAttributes("textStyle").fontSize
+        ? editor.getAttributes("textStyle").fontSize.replace("px", "")
+        : "16";
+        
+      setInputValue(currentSize);
+    };
+
+    updateFontSize(); // Run on mount
+
+    editor.on("transaction", updateFontSize);
+    editor.on("selectionUpdate", updateFontSize);
+
+    return () => {
+      editor.off("transaction", updateFontSize);
+      editor.off("selectionUpdate", updateFontSize);
+    };
+  }, [editor]);
+
+  const updateFontSize = (newSize: string) => {
+    const size = parseInt(newSize);
+    if (!isNaN(size) && size > 0) {
+      // Apply the size to Tiptap
+      editor?.chain().focus().setFontSize(`${size}px`).run();
+      setInputValue(size.toString());
+      setIsEditing(false);
+    } else {
+      // If the user types gibberish, reset it to the current Tiptap size
+      const currentSize = editor?.getAttributes("textStyle").fontSize?.replace("px", "") || "16";
+      setInputValue(currentSize);
+      setIsEditing(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleInputBlur = () => {
+    updateFontSize(inputValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      updateFontSize(inputValue);
+      editor?.commands.focus();
+    }
+  };
+
+  const increment = () => {
+    const newSize = parseInt(inputValue) + 1;
+    updateFontSize(newSize.toString());
+  };
+
+  const decrement = () => {
+    const newSize = parseInt(inputValue) - 1;
+    if (newSize > 0) {
+      updateFontSize(newSize.toString());
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-x-0.5">
+      <button
+        onClick={decrement}
+        className="h-7 w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 cursor-pointer"
+      >
+        <MinusIcon className="size-4" />
+      </button>
+
+      {isEditing ? (
+        <input
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus // Automatically focuses the input when clicked!
+          className="h-7 w-10 text-sm text-center shrink-0 flex items-center justify-center rounded-sm border border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 px-1.5"
+        />
+      ) : (
+        <button
+          onClick={() => setIsEditing(true)}
+          className="h-7 w-10 text-sm text-center border border-neutral-400 rounded-sm px-1.5 hover:bg-neutral-200/80 cursor-pointer"
+        >
+          {inputValue}
+        </button>
+      )}
+
+      <button
+        onClick={increment}
+        className="h-7 w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 cursor-pointer"
+      >
+        <PlusIcon className="size-4" />
+      </button>
+    </div>
+  );
+};
+
 
 const ListButton = () => {
   const { editor } = useEditorStore();
@@ -806,6 +921,7 @@ export const Toolbar = () => {
         className="h-6 bg-neutral-300 my-auto"
       />
       {/* Font Size  */}
+      <FontSizeButton/>
       <Separator
         orientation="vertical"
         className="h-6 bg-neutral-300 my-auto"
