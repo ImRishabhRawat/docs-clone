@@ -10,33 +10,34 @@ import { useEditorStore } from "@/store/use-editor-store";
 import { TextStyle, FontFamily } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
-import Link from '@tiptap/extension-link'
+import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
 
 export const Editor = () => {
-  const {setEditor} = useEditorStore();
+  const { setEditor } = useEditorStore();
   const editor = useEditor({
-    onCreate({editor}){
+    onCreate({ editor }) {
       setEditor(editor);
     },
-    onDestroy(){
+    onDestroy() {
       setEditor(null);
     },
-    onUpdate({editor}){
+    onUpdate({ editor }) {
       setEditor(editor);
     },
-    onSelectionUpdate({editor}){
+    onSelectionUpdate({ editor }) {
       setEditor(editor);
     },
-    onTransaction({editor}){
+    onTransaction({ editor }) {
       setEditor(editor);
     },
-    onFocus({editor}){
+    onFocus({ editor }) {
       setEditor(editor);
     },
-    onBlur({editor}){
+    onBlur({ editor }) {
       setEditor(editor);
     },
-    onContentError({editor}){
+    onContentError({ editor }) {
       setEditor(editor);
     },
     editorProps: {
@@ -55,7 +56,7 @@ export const Editor = () => {
       TableKit,
       Image,
       ImageResize.configure({
-        // You don't need the custom resize block anymore, 
+        // You don't need the custom resize block anymore,
         // this package handles the corners automatically!
       }),
       TextStyle,
@@ -64,13 +65,17 @@ export const Editor = () => {
       Highlight.configure({
         multicolor: true,
       }),
-     Link.configure({
+      Link.configure({
         openOnClick: false,
         autolink: true,
-        defaultProtocol: 'https',
+        defaultProtocol: "https",
         HTMLAttributes: {
-          class: 'text-blue-600 underline underline-offset-4 hover:text-blue-800',
+          class:
+            "text-blue-600 underline underline-offset-4 hover:text-blue-800",
         },
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
       }),
     ],
     content: `<table>

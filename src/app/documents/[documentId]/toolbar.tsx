@@ -5,12 +5,19 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/use-editor-store";
 import {
+  AlignCenterIcon,
+  AlignJustifyIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
   Bold,
   ChevronDown,
   Highlighter,
+  Icon,
   ImageIcon,
   Italic,
   Link2Icon,
+  ListIcon,
+  ListOrderedIcon,
   ListTodoIcon,
   LucideIcon,
   MessageSquarePlusIcon,
@@ -37,6 +44,169 @@ interface ToolbarButtonProps {
   isActive?: boolean;
   icon: LucideIcon;
 }
+
+const ListButton = () => {
+  const { editor } = useEditorStore();
+  
+  // 1. Track the currently active list type
+  const [currentList, setCurrentList] = useState("none");
+
+  const lists = [
+    { 
+      label: "Bullet List", 
+      value: "bulletList", 
+      icon: ListIcon, 
+      onClick: () => editor?.chain().focus().toggleBulletList().run() 
+    },
+    { 
+      label: "Ordered List", 
+      value: "orderedList", 
+      icon: ListOrderedIcon, 
+      onClick: () => editor?.chain().focus().toggleOrderedList().run() 
+    },
+    { 
+      label: "Task List", 
+      value: "taskList", 
+      icon: ListTodoIcon, 
+      onClick: () => editor?.chain().focus().toggleTaskList().run() 
+    },
+  ];
+
+  // 2. Listen to Tiptap events to update the active state
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateState = () => {
+      // Check which list is currently active
+      if (editor.isActive("bulletList")) setCurrentList("bulletList");
+      else if (editor.isActive("orderedList")) setCurrentList("orderedList");
+      else if (editor.isActive("taskList")) setCurrentList("taskList");
+      else setCurrentList("none"); // Default/Inactive
+    };
+
+    updateState(); // Run on mount
+    editor.on("transaction", updateState);
+    editor.on("selectionUpdate", updateState);
+
+    return () => {
+      editor.off("transaction", updateState);
+      editor.off("selectionUpdate", updateState);
+    };
+  }, [editor]);
+
+  // Find the currently active icon to display on the main toolbar
+  // If no list is active, we default to the standard Bullet List icon
+  const ActiveIcon = lists.find((l) => l.value === currentList)?.icon || ListIcon;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
+              // Highlight the main button if ANY list is active
+              currentList !== "none" && "bg-neutral-200/80"
+            )}
+          />
+        }
+      >
+        <ActiveIcon className="size-4" />
+      </DropdownMenuTrigger>
+      
+      {/* 3. Horizontal layout mimicking Google Docs formatting tools */}
+      <DropdownMenuContent className="w-full p-1 flex flex-row items-center gap-x-1 border-0 min-w-0">
+        {lists.map(({ label, value, icon: Icon, onClick }) => (
+          <DropdownMenuItem
+            key={value}
+            onClick={onClick}
+            className={cn(
+              "h-7 min-w-7 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 cursor-pointer",
+              // Apply active background highlight to the specific list type
+              currentList === value && "bg-neutral-200/80"
+            )}
+            title={label}
+          >
+            <Icon className="size-4" />
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const AlignButton = () => {
+  const { editor } = useEditorStore();
+  
+  // 1. Explicitly track the active alignment
+  const [currentAlign, setCurrentAlign] = useState("left");
+
+  const alignments = [
+    { label: "Align Left", value: "left", icon: AlignLeftIcon },
+    { label: "Align Center", value: "center", icon: AlignCenterIcon },
+    { label: "Align Right", value: "right", icon: AlignRightIcon },
+    { label: "Align Justify", value: "justify", icon: AlignJustifyIcon },
+  ];
+
+  // 2. Listen to Tiptap events to update the active state
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateState = () => {
+      // Check which alignment is currently active
+      if (editor.isActive({ textAlign: "center" })) setCurrentAlign("center");
+      else if (editor.isActive({ textAlign: "right" })) setCurrentAlign("right");
+      else if (editor.isActive({ textAlign: "justify" })) setCurrentAlign("justify");
+      else setCurrentAlign("left"); // Default
+    };
+
+    updateState(); // Run on mount
+    editor.on("transaction", updateState);
+    editor.on("selectionUpdate", updateState);
+
+    return () => {
+      editor.off("transaction", updateState);
+      editor.off("selectionUpdate", updateState);
+    };
+  }, [editor]);
+
+  // Find the currently active icon to display on the main toolbar
+  const ActiveIcon = alignments.find((a) => a.value === currentAlign)?.icon || AlignLeftIcon;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden"
+            )}
+          />
+        }
+      >
+        <ActiveIcon className="size-4" />
+      </DropdownMenuTrigger>
+      
+      {/* 3. Horizontal layout mimicking Google Docs */}
+      <DropdownMenuContent className="w-full p-1 flex flex-row items-center gap-x-1 border-0 min-w-0">
+        {alignments.map(({ label, value, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => editor?.chain().focus().setTextAlign(value).run()}
+            className={cn(
+              "h-7 min-w-7 flex items-center justify-center rounded-sm hover:bg-neutral-200/80",
+              // Apply active background highlight
+              currentAlign === value && "bg-neutral-200/80"
+            )}
+            title={label}
+          >
+            <Icon className="size-4" />
+          </button>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const ImageButton = () => {
   const { editor } = useEditorStore();
@@ -91,25 +261,24 @@ const ImageButton = () => {
             className={cn(
               "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
               // Highlights the button if an image is currently selected
-              editor?.isActive("image") && "bg-neutral-200/80" 
+              editor?.isActive("image") && "bg-neutral-200/80",
             )}
           />
         }
       >
         <ImageIcon className="size-4" />
       </DropdownMenuTrigger>
-      
+
       {/* Increased width to fit the URL input nicely */}
       <DropdownMenuContent className="w-[300px] p-2 flex flex-col gap-y-2 border-0">
-        
         {/* Option 1: File Upload */}
         <DropdownMenuItem onClick={onUpload} className="cursor-pointer">
           <UploadIcon className="size-4 mr-2" />
           Upload from computer
         </DropdownMenuItem>
-        
+
         <Separator />
-        
+
         {/* Option 2: Image URL */}
         <div className="flex items-center gap-x-2">
           <Input
@@ -126,17 +295,15 @@ const ImageButton = () => {
             Apply
           </Button>
         </div>
-        
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
-
 const LinkButton = () => {
   const { editor } = useEditorStore();
   const [value, setValue] = useState("");
-  
+
   // 1. Track the active state for the link button
   const [isLinkActive, setIsLinkActive] = useState(false);
 
@@ -183,14 +350,14 @@ const LinkButton = () => {
             className={cn(
               "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
               // 3. Apply the active background class here!
-              isLinkActive && "bg-neutral-200/80"
+              isLinkActive && "bg-neutral-200/80",
             )}
           />
         }
       >
         <Link2Icon className="size-4" />
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent className="w-full p-2.5 flex items-center gap-x-2 border-0">
         <Input
           placeholder="Paste link"
@@ -655,11 +822,13 @@ export const Toolbar = () => {
         className="h-6 bg-neutral-300 my-auto"
       />
       {/* link  */}
-      <LinkButton/>
+      <LinkButton />
       {/* image  */}
-      <ImageButton/>
+      <ImageButton />
       {/* align */}
+      <AlignButton/>
       {/* line height */}
+      <ListButton/>
       {/* list  */}
       {sections[2].map((item) => (
         <ToolbarButton key={item.label} {...item} />
