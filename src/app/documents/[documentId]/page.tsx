@@ -1,4 +1,5 @@
 import { Editor } from "./editor";
+import { Navbar } from "./Navbar";
 import { Toolbar } from "./toolbar";
 
 interface Props{
@@ -10,6 +11,7 @@ const DocumentId = async ({params}: Props) => {
   return (
     <>
     <div className="min-h-screen bg-[#FAFBFD]">
+      <Navbar/>
       <Toolbar/>
     <Editor/>
       </div>
