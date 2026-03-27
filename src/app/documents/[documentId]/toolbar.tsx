@@ -16,6 +16,7 @@ import {
   ImageIcon,
   Italic,
   Link2Icon,
+  ListCollapseIcon,
   ListIcon,
   ListOrderedIcon,
   ListTodoIcon,
@@ -46,6 +47,85 @@ interface ToolbarButtonProps {
   isActive?: boolean;
   icon: LucideIcon;
 }
+
+
+const LineHeightButton = () => {
+  const { editor } = useEditorStore();
+  
+  // 1. Explicitly track the active line height
+  const [currentLineHeight, setCurrentLineHeight] = useState("normal");
+
+  const lineHeights = [
+    { label: "Default", value: "normal" },
+    { label: "Single", value: "1" },
+    { label: "1.15", value: "1.15" },
+    { label: "1.5", value: "1.5" },
+    { label: "Double", value: "2" }, // Renamed to Double for clarity
+    { label: "2.5", value: "2.5" },
+    { label: "3", value: "3" },
+  ];
+
+  // 2. Listen to Tiptap events to sync the active state
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateState = () => {
+      // Find the current node we are interacting with
+      const { selection } = editor.state;
+      const { $from } = selection;
+      const node = $from.node($from.depth);
+
+      // Extract the line height from the node's attributes
+      const activeLineHeight = node?.attrs?.lineHeight || "normal";
+      setCurrentLineHeight(activeLineHeight);
+    };
+
+    updateState(); // Run on mount
+    editor.on("transaction", updateState);
+    editor.on("selectionUpdate", updateState);
+
+    return () => {
+      editor.off("transaction", updateState);
+      editor.off("selectionUpdate", updateState);
+    };
+  }, [editor]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            className={cn(
+              "h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden",
+              // Highlight the button if a non-default line height is active
+              currentLineHeight !== "normal" && "bg-neutral-200/80"
+            )}
+          />
+        }
+      >
+        <ListCollapseIcon className="size-4" />
+      </DropdownMenuTrigger>
+      
+      {/* 3. Clean vertical layout for the line height options */}
+      <DropdownMenuContent className="p-1 flex flex-col gap-y-1 min-w-[120px]">
+        {lineHeights.map(({ label, value }) => (
+          <DropdownMenuItem
+            key={value}
+            // Use your brilliant custom extension command!
+            onClick={() => editor?.chain().focus().setLineHeight(value).run()}
+            className={cn(
+              "flex items-center gap-x-2 px-2 py-1 rounded-sm cursor-pointer",
+              // Apply active background highlight
+              currentLineHeight === value && "bg-neutral-200/80"
+            )}
+          >
+            <span className="text-sm">{label}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const FontSizeButton = () => {
   const { editor } = useEditorStore();
@@ -944,6 +1024,7 @@ export const Toolbar = () => {
       {/* align */}
       <AlignButton/>
       {/* line height */}
+      <LineHeightButton/>
       <ListButton/>
       {/* list  */}
       {sections[2].map((item) => (
